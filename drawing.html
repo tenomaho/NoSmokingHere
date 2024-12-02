@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoSmorkingHere</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        #container {
+            width: 300vw;
+            height: 100vh;
+            position: relative;
+            background: url('https://i.ibb.co/gVsfdhj/Kakao-Talk-20241202-234303321.jpg') no-repeat center center;
+            background-size: auto 150vh;
+        }
+
+        h1 {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            color: white;
+            z-index: 10;
+        }
+
+        .controls {
+            position: fixed;
+            top: 60px;
+            left: 10px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .controls input,
+        .controls button {
+            font-size: 1rem;
+            padding: 5px;
+        }
+
+        .controls label {
+            display: block;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 300vw;
+            height: 100vh;
+            pointer-events: auto;
+        }
+
+        .ascii {
+            position: absolute;
+            color: white;
+            font-family: monospace;
+            white-space: pre;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="title">NoSmorkingHere</h1>
+    <div class="controls">
+        <label for="colorPicker">🎨 색 변경</label>
+        <input type="color" id="colorPicker" value="#000000">
+        <label for="sizePicker">🖌 브러시 크기</label>
+        <input type="range" id="sizePicker" min="10" max="200" value="100">
+        <button id="clearCanvas">🧹 캔버스 초기화</button>
+    </div>
+
+    <div id="container">
+        <canvas id="drawing-board"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('drawing-board');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth * 3;
+        canvas.height = window.innerHeight;
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let strokeColor = '#000000';
+        let brushSize = 100;
+        let brushImage = new Image();
+        brushImage.src = 'https://purepng.com/public/uploads/large/purepng.com-tobaccotobaccocigarettescigarspipe-tobacco-1411527181162turpu.png';
+
+        const colorPicker = document.getElementById('colorPicker');
+        const sizePicker = document.getElementById('sizePicker');
+        const clearCanvasButton = document.getElementById('clearCanvas');
+        const title = document.getElementById('title');
+
+        colorPicker.addEventListener('input', (e) => {
+            strokeColor = e.target.value;
+            title.style.color = strokeColor;
+            changeBrushColor(strokeColor);
+        });
+
+        sizePicker.addEventListener('input', (e) => {
+            brushSize = e.target.value;
+        });
+
+        clearCanvasButton.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const x = e.offsetX - brushSize / 2;
+            const y = e.offsetY - brushSize / 2;
+
+            ctx.globalAlpha = 1;
+            ctx.drawImage(brushCacheCanvas, x, y, brushSize, brushSize);
+
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        const brushCacheCanvas = document.createElement('canvas');
+        const brushCacheCtx = brushCacheCanvas.getContext('2d');
+
+        function changeBrushColor(color) {
+            brushCacheCanvas.width = brushImage.width;
+            brushCacheCanvas.height = brushImage.height;
+
+            brushCacheCtx.clearRect(0, 0, brushCacheCanvas.width, brushCacheCanvas.height);
+            brushCacheCtx.drawImage(brushImage, 0, 0);
+            brushCacheCtx.globalCompositeOperation = 'source-atop';
+            brushCacheCtx.fillStyle = color;
+            brushCacheCtx.fillRect(0, 0, brushCacheCanvas.width, brushCacheCanvas.height);
+            brushCacheCtx.globalCompositeOperation = 'source-over';
+        }
+
+        brushImage.onload = () => {
+            changeBrushColor(strokeColor);
+        };
+
+        const asciiArt = `
+⠀⠀⠀⡠⣰⠢⠳⠹⠜⠲⡤⣀⠀⠀⠀
+⠀⢠⡚⠊⠀⠀⠀⠀⠀⠀⠈⣜⢕⡄⠀
+⢰⡱⠁⠀⠀⠀⠀⠀⠀⣄⢏⠊⠀⢏⠆
+⡇⡇⠀⠀⠀⠀⠀⣠⢺⠈⠀⠀⠀⠨⡣
+⣝⠄⠀⠀⠀⡠⣪⠊⠀⠀⠀⠀⠀⢘⡎
+⠨⣣⠀⣀⢖⠝⠀⠀⠀⠀⠀⠀⢀⡲⡁
+⠀⠈⢧⡣⡁⠀⠀⠀⠀⠀⢀⡠⡮⠊⠀
+⠀⠀⠀⠑⠱⠕⣆⢦⢲⠜⠎⠊⠀⠀⠀
+        `;
+
+        function createAsciiArt() {
+            const div = document.createElement('div');
+            div.classList.add('ascii');
+            div.textContent = asciiArt;
+            document.body.appendChild(div);
+
+            let x = Math.random() * window.innerWidth * 3;
+            let y = Math.random() * window.innerHeight;
+            div.style.left = `${x}px`;
+            div.style.top = `${y}px`;
+
+            setInterval(() => {
+                x += Math.random() * 100 - 50;
+                y += Math.random() * 100 - 50;
+
+                if (x < 0) x = 0;
+                if (y < 0) y = 0;
+                if (x > canvas.width - 100) x = canvas.width - 100;
+                if (y > canvas.height - 50) y = canvas.height - 50;
+
+                div.style.left = `${x}px`;
+                div.style.top = `${y}px`;
+            }, 100);
+        }
+
+        for (let i = 0; i < 40; i++) {
+            createAsciiArt();
+        }
+    </script>
+</body>
+</html>

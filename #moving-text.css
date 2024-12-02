@@ -1,0 +1,17 @@
+#moving-text {
+    position: absolute; /* 필요에 따라 'fixed'로도 가능 */
+    top: 50px; /* 초기 상단 위치 */
+    left: 50px; /* 초기 좌측 위치 */
+    font-family: monospace;
+    font-size: 1.5rem;
+    white-space: pre;
+    animation: move 5s linear infinite; /* 속도 조절: 5초 주기로 움직임 */
+}
+
+@keyframes move {
+    0% { top: 50px; left: 50px; }
+    25% { top: 50px; left: 150px; }
+    50% { top: 150px; left: 150px; }
+    75% { top: 150px; left: 50px; }
+    100% { top: 50px; left: 50px; }
+}
